@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Javascript转盘游戏</title>
+    <link rel="stylesheet" href="../../css/g.css"/>
+    <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+</head>
+<body>
+<h2>Javascript转盘游戏</h2>
+<p>配置： 后台活动 - 组件设置 - 订单抽奖</p>
+<p>范例活动ID： <code>7829</code></p>
+<h3>引入代码: <a href="jquery.ecdloy.min.js">jquery.ecdloy.min.js</a></h3>
+<p>现阶段直接把代码嵌入页面</p>
+<h3>HTML结构范例</h3>
+<p>其中 <code>data-loysn</code> 为后台订单抽奖里配置的 <strong>领取成功返回code</strong></p>
+<pre><code>
+&lt;ul id="loy_panel" class="list_loy_item clearfix"&gt;
+    &lt;li&gt;
+        &lt;div data-loysn="1" class="loy_item loy_item_on"&gt;&lt;/div&gt;
+    &lt;/li&gt;
+    &lt;li&gt;
+        &lt;div data-loysn="2" class="loy_item loy_item_on"&gt;&lt;/div&gt;
+    &lt;/li&gt;
+    &lt;li&gt;
+        &lt;div data-loysn="3" class="loy_item loy_item_on"&gt;&lt;/div&gt;
+    &lt;/li&gt;
+    &lt;li&gt;
+        &lt;div data-loysn="8" class="loy_item loy_item_on"&gt;&lt;/div&gt;
+    &lt;/li&gt;
+    &lt;li&gt;
+        &lt;a id="btn_loy" href="javascript:void(0);"&gt;抽奖&lt;/a&gt;
+    &lt;/li&gt;
+    &lt;li&gt;
+        &lt;div data-loysn="4" class="loy_item loy_item_on"&gt;&lt;/div&gt;
+    &lt;/li&gt;
+    &lt;li&gt;
+        &lt;div data-loysn="7" class="loy_item loy_item_on"&gt;&lt;/div&gt;
+    &lt;/li&gt;
+    &lt;li&gt;
+        &lt;div data-loysn="6" class="loy_item loy_item_on"&gt;&lt;/div&gt;
+    &lt;/li&gt;
+    &lt;li&gt;
+        &lt;div data-loysn="5" class="loy_item loy_item_on"&gt;&lt;/div&gt;
+    &lt;/li&gt;
+&lt;/ul&gt;
+</code></pre>
+
+<h3>javascript使用</h3>
+<p>其中 <code>sn</code> 分为以下几种情况:</p>
+<ul>
+    <li>普通抽奖： <code>http://event.yixun.com/json.php?rand=&mod=lotteryge&act=order&oder_lottery=0&sn={@evt_id}</code></li>
+    <li>积分抽奖： <code>http://event.yixun.com/json.php?mod=lotteryge&act=integral&sn={@evt_id}</code></li>
+</ul>
+<p>几个回调函数:</p>
+<ul>
+    <li><code>error</code>: 网络错误，抽奖超时的返回</li>
+    <li><code>complete</code>: 接口返回正常，但是反馈抽奖条件错误</li>
+    <li><code>onWin</code>: 抽奖成功，并返回后台配置里的 <strong>领取成功返回code</strong></li>
+</ul>
+<pre><code>
+$(document).ready(function(){
+    //初始化抽奖插件
+    $('#loy_panel').ecdloy({
+        spinner: "#btn_loy", //开始抽奖按钮
+        sn: "http://event.yixun.com/json.php?mod=lotteryge&act=integral&sn={@evt_id}",
+        error: function(){
+            dialog = G.ui.popup.showMsg('网络连接错误,请稍候重试!');
+        },
+        complete: function(data){
+            var errno = data.errno;
+            var message = data.message;
+            if (errno == 1) {//未登录
+                dialog = G.ui.popup.showMsg('您好，抽奖活动需要登录后才能参与。', 1, function(){location.href = 'https://base.51buy.com/login.html?url='+encodeURIComponent(location.href);},null,null,'马上登录','取消');
+            } else if (message == '') {//错误
+                dialog = G.ui.popup.showMsg('抱歉，系统繁忙，请5秒钟后再试');
+            } else {
+                if (errno == 46) {
+                    dialog = G.ui.popup.showMsg('您好，此抽奖活动需手机验证后才能参与。', 1, function(){window.open("http://base.51buy.com/myprofile.html");},null,null,'立即验证');
+                } else if(errno == 47) {
+                    dialog = G.ui.popup.showMsg('您好，此抽奖活动需邮箱验证后才能参与。', 1, function(){window.open("http://base.51buy.com/myprofile.html");},null,null,'立即验证');
+                } else if(errno == 51) {
+                    dialog = G.ui.popup.showMsg('很抱歉，您今天的抽奖次数已用完。请明天再来!', 1, null,function(){close();},null,null,'确定');
+                } else if(errno == 50) {
+                    dialog = G.ui.popup.showMsg('很抱歉，您的抽奖次数已用完。', 1, null,function(){close();},null,null,'确定');
+                } else if(errno == 161 || errno == 162) {
+                    dialog = G.ui.popup.showMsg("您好，请先预约后，才能参加抽奖活动哦！", 1);
+                }else {
+                    dialog = G.ui.popup.showMsg(message);
+                }
+            }
+        },
+        onWin: function(data){
+            var level = data.success_code;
+            var message = data.message;
+            if(level=='2'){
+                dialog = G.ui.popup.showMsg(message, 1);
+            }else{
+                dialog = G.ui.popup.showMsg(message, 3);
+            }
+        }
+    });
+});
+</code></pre>
+</body>
+</html>
