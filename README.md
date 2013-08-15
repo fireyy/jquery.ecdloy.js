@@ -42,9 +42,9 @@
 
 其中 sn 为抽奖接口地址
 
-error: 网络错误，抽奖超时的返回
-complete: 接口返回正常，但是反馈抽奖条件错误
-onWin: 抽奖成功，并返回后台配置里的 领取成功返回code
+- error: 网络错误，抽奖超时的返回
+- complete: 接口返回正常，但是反馈抽奖条件错误
+- onWin: 抽奖成功，并返回后台配置里的 领取成功返回code
 
 ```
 $(document).ready(function(){
